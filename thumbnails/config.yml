@@ -1,3 +1,7 @@
+packages:
+  pip:
+  - 'Pillow'
+
 msg_broker:
   supported_mime:
   - 'image/jpeg'
