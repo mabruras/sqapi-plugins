@@ -21,8 +21,7 @@ def get_sizes(metadata, data):
     metadata_size = len(metadata)
 
     log.debug('Getting size of payload')
-    log.debug(data.read())
-    data_size = data.tell()
+    data_size = data.seek(0, 2)
     data.close()
     log.debug(data_size)
 

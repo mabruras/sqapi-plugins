@@ -1,5 +1,8 @@
 # sqAPI Plugins
 
+_Are you actually looking for the
+[sqAPI Core Repository](https://github.com/mabruras/sqapi)?_
+
 ## About
 Collection repository for custom business logic of
 [sqAPI](https://github.com/mabruras/sqapi).
@@ -78,8 +81,8 @@ db = current_app.database['image_plugin']
 #### Config file
 The configuration file: `config.yml`, this name is not changeable.
 
-The plugin-specific configuration is used to override default
-configuration from [sqAPI-config](https://github.com/mabruras/sqapi/blob/master/sqapi/conf/sqapi.yml).
+The plugin-specific configuration is used to override default configuration from
+[sqAPI-config](https://github.com/mabruras/sqapi/blob/master/sqapi/conf/sqapi.yml).
 
 The configuration can be extended with what ever fields
 you want to use within the business logic (both `execute` and blueprints).
