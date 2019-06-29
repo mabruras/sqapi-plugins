@@ -23,19 +23,19 @@ def create_thumbnail(config, message, data):
     height = config.custom.get('thumb_size', {}).get('height', 128)
     log.debug('Creating thumbnail with width/height: {}/{}'.format(width, height))
 
-    out = config.custom.get('thumb_dir')
+    thumb_dir = config.custom.get('thumb_dir')
 
-    pathlib.Path(out).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(thumb_dir).mkdir(parents=True, exist_ok=True)
 
     try:
         im = Image.open(data)
         im.thumbnail((width, height))
-        thumb_location = '{}'.format(os.sep).join([out, message.get('uuid_ref')])
+        thumb_location = '{}'.format(os.sep).join([thumb_dir, message.get('uuid_ref')])
         log.debug('Thumbnail is stored in {}'.format(thumb_location))
 
         im.save(thumb_location, im.format)
 
-        return thumb_location
+        return thumb_dir
     except IOError as e:
         err = 'Cannot create thumbnail for {}: {}'.format(data, str(e))
         log.warning(err)
@@ -50,7 +50,6 @@ def save_to_db(database, message, metadata, location):
         'received_date': message.get('created_at', datetime.now()),
         'meta_location': message.get('meta_location', None),
         'data_location': message.get('data_location', None),
-        'mime_type': metadata.get('mime.type', None),
         'thumb_location': location,
     }
     log.debug(output)
