@@ -4,6 +4,5 @@ CREATE TABLE IF NOT EXISTS duplicates (
   meta_location TEXT,
   data_location TEXT,
   sha_256       TEXT,
-  created_at    TIMESTAMPTZ DEFAULT Now(),
-  updated_at    TIMESTAMPTZ DEFAULT Now()
+  created_at    TIMESTAMPTZ DEFAULT Now()
 );

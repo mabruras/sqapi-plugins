@@ -5,6 +5,5 @@ CREATE TABLE IF NOT EXISTS sizes (
   data_location TEXT,
   metadata_size INTEGER,
   data_size     INTEGER,
-  created_at    TIMESTAMPTZ DEFAULT Now(),
-  updated_at    TIMESTAMPTZ DEFAULT Now()
+  created_at    TIMESTAMPTZ DEFAULT Now()
 );
