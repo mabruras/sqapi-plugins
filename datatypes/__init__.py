@@ -19,7 +19,7 @@ def save_to_db(database, message, metadata):
         'uuid_ref': message.get('uuid_ref', None),
         'meta_location': message.get('meta_location', None),
         'data_location': message.get('data_location', None),
-        'mime_type': metadata.get('mime.type', None),
+        'datatype': metadata.get('mime.type', None),
     }
     log.debug(output)
 
