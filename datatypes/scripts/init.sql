@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS datatypes (
   created_at     TIMESTAMPTZ DEFAULT Now()
 );
 
-CREATE INDEX IF NOT EXISTS mime_t_fd_idx ON datatypes (datatype);
-CREATE INDEX IF NOT EXISTS mime_t_created_idx ON datatypes (created_at desc); 
+CREATE INDEX IF NOT EXISTS data_t_fd_idx ON datatypes (datatype);
+CREATE INDEX IF NOT EXISTS data_t_created_idx ON datatypes (created_at desc); 
