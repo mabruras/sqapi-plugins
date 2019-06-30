@@ -5,6 +5,5 @@ CREATE TABLE IF NOT EXISTS thumbnails (
   data_location  TEXT,
   thumb_location TEXT,
   received_date  TIMESTAMPTZ DEFAULT Now(),
-  created_at     TIMESTAMPTZ DEFAULT Now(),
-  updated_at     TIMESTAMPTZ DEFAULT Now()
+  created_at     TIMESTAMPTZ DEFAULT Now()
 );
