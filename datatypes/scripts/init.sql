@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS datatypes (
   uuid_ref       TEXT NOT NULL PRIMARY KEY,
   meta_location  TEXT,
   data_location  TEXT,
-  datatype      TEXT,
+  datatype       TEXT,
   created_at     TIMESTAMPTZ DEFAULT Now()
 );
 
