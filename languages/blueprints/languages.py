@@ -57,8 +57,8 @@ def get_script_path(name):
 
 
 def get_database():
-    return current_app.database.get('lang_detect')
+    return current_app.database.get('languages')
 
 
 def get_config():
-    return current_app.config.get('lang_detect')
+    return current_app.config.get('languages')
