@@ -1,5 +1,5 @@
 -- Inserting values into custom table
-INSERT INTO lang_detect (
+INSERT INTO languages (
   uuid_ref,
   meta_location,
   data_location,
