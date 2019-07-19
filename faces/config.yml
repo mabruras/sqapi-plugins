@@ -3,6 +3,7 @@ packages:
   - 'dlib'
   - 'Pillow'
   - 'face_recognition'
+  - 'numpy'
 
 msg_broker:
   supported_mime:

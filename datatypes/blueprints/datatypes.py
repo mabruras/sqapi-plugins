@@ -4,7 +4,6 @@ import os
 
 from flask import Blueprint, current_app, request
 from flask_cors import cross_origin
-
 from sqapi.api import responding
 
 SELECT_ALL_DATA_TYPES = 'select_datatypes_count.sql'
@@ -13,6 +12,7 @@ SELECT_UUIDREFS_BY_DATA_TYPES_ON_DATE = 'select_uuidrefs_by_dt_on_date.sql'
 
 log = logging.getLogger(__name__)
 bp = Blueprint(__name__, __name__, url_prefix='/datatypes')
+
 
 @bp.route('/', methods=['GET'])
 @cross_origin()
@@ -30,6 +30,7 @@ def get_all_datatypes():
     log.debug('Entries: {}'.format(datatypes))
     return responding.ok(datatypes)
 
+
 @bp.route('/uuidrefs', methods=['GET'])
 @cross_origin()
 def get_all_refs():
@@ -44,15 +45,15 @@ def get_all_refs():
 
     if req_datatype and req_date:
         script = get_script_path(SELECT_UUIDREFS_BY_DATA_TYPES_ON_DATE)
-        datatype = {'datatype': req_datatype, 'anydate': req_date }
+        datatype = {'datatype': req_datatype, 'anydate': req_date}
         log.info('Fetching ref uuids for datatype, anydate: {}'.format(datatype))
         entities = db.execute_script(script, **datatype)
 
     else:
         script = get_script_path(SELECT_UUIDREFS_BY_DATA_TYPES)
-        datatype = {'datatype': req_datatype }
+        datatype = {'datatype': req_datatype}
         entities = db.execute_script(script, **datatype)
-    
+
     if not entities:
         log.info('No entries found for datatype: {}'.format(datatype))
         return responding.no_content([])

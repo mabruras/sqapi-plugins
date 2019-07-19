@@ -115,21 +115,21 @@ This example tests each of the input arguments.
 def execute(config, database, message: dict, metadata: dict, data: bytes):
 
     # Config
-    print('My configuration: {}'.format(config))
+    log.debug('My configuration: {}'.format(config))
 
     # Database
-    print('Database ready for usage: {}'.format(database.active_connection()))
+    log.debug('Database ready for usage: {}'.format(database.active_connection()))
 
     # Message
     for k,v in message.items():
-        print('{} = {}'.format(k,v))
+        log.debug('{} = {}'.format(k,v))
 
     # Metadata
-    print('Metadata: {}'.format(metadata))
+    log.info('Metadata: {}'.format(metadata))
 
     # Data
     filesize = data.seek(0, 2)
-    print('Filesize: {}'.format(filesize))
+    log.info('File size: {}'.format(filesize))
 ```
 
 ##### Arguments
