@@ -15,7 +15,7 @@ SELECT_ALL_ENCODINGS = 'select_all_faces.sql'
 log = logging.getLogger(__name__)
 
 
-def execute(config, database, message: dict, metadata: dict, data: io.BufferedReader):
+def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     log.info('Verifying image size')
 
     im = Image.open(data)
@@ -25,7 +25,7 @@ def execute(config, database, message: dict, metadata: dict, data: io.BufferedRe
 
     if width < min_width or height < min_height:
         log.warning('Size of image "{}" was not valid. Actual: {}, minimum values: {})'.format(
-            message.get('uuid_ref', None),
+            message.uuid,
             (width, height),
             (min_height, min_width)
         ))
@@ -52,9 +52,9 @@ def execute(config, database, message: dict, metadata: dict, data: io.BufferedRe
 def convert_to_db_insert(message, face):
     return {
         'id': str(uuid.uuid4()),
-        'uuid_ref': message.get('uuid_ref', None),
-        'meta_location': message.get('meta_location', None),
-        'data_location': message.get('data_location', None),
+        'uuid_ref': message.uuid,
+        'meta_location': message.meta_location,
+        'data_location': message.data_location,
         'encoding': face.get('encoding', list()),
         'user_id': face.get('user_id', None),
         'box': json.dumps(face.get('box', dict())),

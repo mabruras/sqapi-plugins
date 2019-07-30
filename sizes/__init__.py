@@ -8,7 +8,7 @@ INSERT_ITEM = 'insert_item.sql'
 log = logging.getLogger(__name__)
 
 
-def execute(config, database, message: dict, metadata: dict, data: io.BufferedReader):
+def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     log.info('Getting metadata count and size of data payload')
     sizes = get_sizes(metadata, data)
     out = convert_to_db_insert(message, *sizes)
@@ -30,9 +30,9 @@ def get_sizes(metadata, data):
 
 def convert_to_db_insert(message, meta_size, data_size):
     return {
-        'uuid_ref': message.get('uuid_ref', None),
-        'meta_location': message.get('meta_location', None),
-        'data_location': message.get('data_location', None),
+        'uuid_ref': message.uuid,
+        'meta_location': message.meta_location,
+        'data_location': message.data_location,
         'metadata_size': meta_size,
         'data_size': data_size,
     }

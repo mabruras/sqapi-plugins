@@ -104,7 +104,7 @@ Within the `execute` function, you configure, structure and store the data in an
 The only required setup, is that the following method is defined, within `__init__.py`.
 
 ```python
-def execute(config, database, message: dict, metadata: dict, data: bytes):
+def execute(config, database, message: Message, metadata: dict, data: bytes):
     pass
 ```
 
@@ -112,7 +112,7 @@ def execute(config, database, message: dict, metadata: dict, data: bytes):
 This example tests each of the input arguments.
 
 ```python
-def execute(config, database, message: dict, metadata: dict, data: bytes):
+def execute(config, database, message: Message, metadata: dict, data: bytes):
 
     # Config
     log.debug('My configuration: {}'.format(config))
@@ -120,8 +120,8 @@ def execute(config, database, message: dict, metadata: dict, data: bytes):
     # Database
     log.debug('Database ready for usage: {}'.format(database.active_connection()))
 
-    # Message
-    for k,v in message.items():
+    # Message body
+    for k,v in message.body.items():
         log.debug('{} = {}'.format(k,v))
 
     # Metadata
@@ -166,9 +166,12 @@ This depends on the database module implementation,
 and what kind of system is running as database.
 
 ###### Message
-This is the received message from the message broker, represented as a dictionary.
-It will contain a set of key/value pairs that you could use if you see it necessary.
-Typical usage is to refer to the identification of the data received.
+This is the received message from the message broker, represented as a
+[sqAPI Message](https://github.com/mabruras/sqapi/blob/master/sqapi/core/message.py).
+It will have a `body` with a dictionary containing set of key/value pairs,
+that you could use if you see it necessary.
+
+Typical usage is to refer to the identification of the data received (`message.uuid`).
 
 ###### Metadata
 Metadata fetched from the `metadata store`, as dictionary.
@@ -208,11 +211,9 @@ Note that you would still have to initialize the database.
 ```sql
 INSERT INTO items (
   uuid_ref,
-  received_date,
   mime_type
 ) VALUES (
   %(uuid_ref)s,
-  %(received_date)s,
   %(mime_type)s
 )
 ```
@@ -220,18 +221,16 @@ INSERT INTO items (
 ###### Execute
 ```python
 import os
-from datetime import datetime
 
 SQL_SCRIPT_DIR = '{}/scripts'.format(os.path.dirname(__file__))
 
 
-def execute(config, database, message: dict, metadata: dict, data: bytes):
+def execute(config, database, message: Message, metadata: dict, data: bytes):
     insert_script = 'insert_item.sql'
 
     output = {
-        'uuid_ref': message.get('uuid_ref', None),
-        'received_date': message.get('created_at', datetime.now()),
-        'mime_type': metadata.get('mime.type', None),
+        'uuid_ref': message.uuid,
+        'mime_type': message.type or metadata.get('mime.type'),
     }
 
     script = os.path.join(SQL_SCRIPT_DIR, insert_script)
@@ -256,7 +255,7 @@ When accessing a topic of configuration, you will call it directly on the Config
 Each topic is a dictionary, created from the yaml configuration file, added to the Config object.
 
 ```python
-def execute(config, database, message: dict, metadata: dict, data: bytes):
+def execute(config, database, message: Message, metadata: dict, data: bytes):
     # Access a topic
     meta_store = config.meta_store  # Returns a dictionary of meta_store, defined in the configuration file
     

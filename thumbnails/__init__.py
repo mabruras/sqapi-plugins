@@ -2,7 +2,6 @@ import io
 import logging
 import os
 import pathlib
-from datetime import datetime
 
 from PIL import Image
 
@@ -12,7 +11,7 @@ INSERT_ITEM = 'insert_item.sql'
 log = logging.getLogger(__name__)
 
 
-def execute(config, database, message: dict, metadata: dict, data: io.BufferedReader):
+def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     loc = create_thumbnail(config, message, data)
 
     save_to_db(database, message, metadata, loc)
@@ -30,7 +29,7 @@ def create_thumbnail(config, message, data):
     try:
         im = Image.open(data)
         im.thumbnail((width, height))
-        thumb_location = '{}'.format(os.sep).join([thumb_dir, message.get('uuid_ref')])
+        thumb_location = '{}'.format(os.sep).join([thumb_dir, message.uuid])
         log.debug('Thumbnail is stored in {}'.format(thumb_location))
 
         im.save(thumb_location, im.format)
@@ -46,10 +45,9 @@ def save_to_db(database, message, metadata, location):
     log.info('Storing thumbnail reference in database')
     # This defines the kwargs that are sent in as parameters to the SQL script
     output = {
-        'uuid_ref': message.get('uuid_ref', None),
-        'received_date': message.get('created_at', datetime.now()),
-        'meta_location': message.get('meta_location', None),
-        'data_location': message.get('data_location', None),
+        'uuid_ref': message.uuid,
+        'meta_location': message.meta_location,
+        'data_location': message.data_location,
         'thumb_location': location,
     }
     log.debug(output)
