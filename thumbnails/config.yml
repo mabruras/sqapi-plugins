@@ -1,6 +1,7 @@
 packages:
   pip:
-  - 'Pillow'
+    install:
+    - 'Pillow'
 
 msg_broker:
   supported_mime:

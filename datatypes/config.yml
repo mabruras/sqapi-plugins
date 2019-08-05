@@ -1,5 +1,2 @@
-msg_broker:
-  supported_mime:
-
 api:
   blueprints_directory: 'blueprints'

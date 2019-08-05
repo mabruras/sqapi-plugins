@@ -1,6 +1,7 @@
 packages:
   pip:
-  - 'langdetect'
+    install:
+    - 'langdetect'
 
 msg_broker:
   supported_mime:
