@@ -34,10 +34,14 @@ def find_face_encodings_with_location(file):
 
 
 def find_encodings_with_locations(img):
-    log.debug('Extracting face encodings')
-    encodings = face_recognition.face_encodings(img)
     log.debug('Extracting face locations')
     locations = face_recognition.face_locations(img)
+    if not locations:
+        log.debug('No face locations detected')
+        return []
+
+    log.debug('Extracting face encodings')
+    encodings = face_recognition.face_encodings(img, known_face_locations=locations)
 
     log.debug('Zipping encodings with their respective location')
     return [(enc, loc) for (enc, loc) in zip(encodings, locations)]
