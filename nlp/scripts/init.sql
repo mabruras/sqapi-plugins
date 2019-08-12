@@ -1,4 +1,1 @@
-CREATE TABLE IF NOT EXISTS nlp (
-  uuid_ref       TEXT NOT NULL PRIMARY KEY,
-  created_at     TIMESTAMPTZ DEFAULT Now()
-);
+---

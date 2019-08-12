@@ -11,21 +11,20 @@ log = logging.getLogger(__name__)
 bp = Blueprint(__name__, __name__, url_prefix='/nlp')
 
 
-@bp.route('/', methods=['GET'])
+@bp.route('/<text>', methods=['GET'])
 @cross_origin()
-def get_all_nlp():
+def get_all_nlp(text):
     db = get_database()
 
     log.info('Fetching all nlp')
-    script = get_script_path('SELECT * FROM nlp;')
-    result = db.execute_script(script)
+    result = db.fetch_document('nlp', {'multi_match': {'query': text, 'fields': ['*']}})
 
     if not result:
         log.info('No entries found')
         return responding.no_content(result)
 
     log.debug('Entries: {}'.format(result))
-    return responding.ok(result)
+    return responding.ok([r.get('_source') for r in result])
 
 
 def get_script_path(name):
