@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
+import io
 import logging
 import os
 
-from flask import Blueprint, current_app, send_from_directory
+from flask import Blueprint, current_app, send_file
 from flask_cors import cross_origin
 from sqapi.api import responding
 
@@ -28,11 +29,12 @@ def thumbnail_by_uuid(uuid_ref):
         log.warning(err)
         return responding.no_content(err)
 
-    thumb_dir = thumbnails[0].get('thumb_location', None)
-    log.debug('Thumbnail directory: {}'.format(thumb_dir))
     log.debug('Thumbnail uuid: {}'.format(uuid_ref))
 
-    return send_from_directory(directory=thumb_dir, filename=uuid_ref)
+    return send_file(
+        io.BytesIO(thumbnails[0].get('thumbnail', b'')),
+        attachment_filename=uuid_ref
+    )
 
 
 def get_script_path(name):

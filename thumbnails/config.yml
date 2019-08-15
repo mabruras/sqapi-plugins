@@ -11,6 +11,3 @@ msg_broker:
 
 api:
   blueprints_directory: 'blueprints'
-
-custom:
-  thumb_dir: '/io/thumbnails'
