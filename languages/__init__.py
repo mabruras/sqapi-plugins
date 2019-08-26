@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import uuid
 
 from langdetect import detect
 
@@ -31,7 +32,8 @@ def save_to_db(database, message, lang):
     log.info('Storing language in database')
     # This defines the kwargs that are sent in as parameters to the SQL script
     output = {
-        'uuid_ref': message.uuid,
+        'id': str(uuid.uuid4()),
+        'uuid': message.uuid,
         'meta_location': message.meta_location,
         'data_location': message.data_location,
         'lang': lang,

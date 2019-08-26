@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import uuid
 
 from PIL import Image
 
@@ -39,7 +40,8 @@ def save_to_db(database, message, thumbnail_data):
     log.info('Storing thumbnail reference in database')
 
     output = {
-        'uuid_ref': message.uuid,
+        'id': str(uuid.uuid4()),
+        'uuid': message.uuid,
         'meta_location': message.meta_location,
         'data_location': message.data_location,
         'thumbnail': thumbnail_data,

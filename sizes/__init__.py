@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import uuid
 
 SQL_SCRIPT_DIR = '{}/scripts'.format(os.path.dirname(__file__))
 INSERT_ITEM = 'insert_item.sql'
@@ -30,7 +31,8 @@ def get_sizes(metadata, data):
 
 def convert_to_db_insert(message, meta_size, data_size):
     return {
-        'uuid_ref': message.uuid,
+        'id': str(uuid.uuid4()),
+        'uuid': message.uuid,
         'meta_location': message.meta_location,
         'data_location': message.data_location,
         'metadata_size': meta_size,

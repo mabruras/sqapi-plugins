@@ -13,27 +13,27 @@ log = logging.getLogger(__name__)
 bp = Blueprint(__name__, __name__, url_prefix='/thumbnails')
 
 
-@bp.route('/<uuid_ref>', methods=['GET'])
+@bp.route('/<uuid>', methods=['GET'])
 @cross_origin()
-def thumbnail_by_uuid(uuid_ref):
+def thumbnail_by_uuid(uuid):
     db = get_database()
-    uuid_dict = {'uuid_ref': uuid_ref}
+    uuid_dict = {'uuid': uuid}
 
-    log.info('Fetching thumbnail for uuid: {}'.format(uuid_ref))
+    log.info('Fetching thumbnail for uuid: {}'.format(uuid))
     script = get_script_path(SELECT_THUMB_BY_UUID)
     thumbnails = db.execute_script(script, **uuid_dict)
     log.debug('Thumbnails found: {}'.format(thumbnails))
 
     if not thumbnails:
-        err = 'No thumbnail found with UUID: {}'.format(uuid_ref)
+        err = 'No thumbnail found with UUID: {}'.format(uuid)
         log.warning(err)
         return responding.no_content(err)
 
-    log.debug('Thumbnail uuid: {}'.format(uuid_ref))
+    log.debug('Thumbnail uuid: {}'.format(uuid))
 
     return send_file(
         io.BytesIO(thumbnails[0].get('thumbnail', b'')),
-        attachment_filename=uuid_ref
+        attachment_filename=uuid
     )
 
 

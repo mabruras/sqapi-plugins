@@ -52,7 +52,7 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
 def convert_to_db_insert(message, face):
     return {
         'id': str(uuid.uuid4()),
-        'uuid_ref': message.uuid,
+        'uuid': message.uuid,
         'meta_location': message.meta_location,
         'data_location': message.data_location,
         'encoding': face.get('encoding', list()),

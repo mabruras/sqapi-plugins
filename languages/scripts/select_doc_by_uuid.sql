@@ -1,3 +1,3 @@
 SELECT *
-FROM sizes
+FROM languages
 WHERE uuid = %(uuid)s

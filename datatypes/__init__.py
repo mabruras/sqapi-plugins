@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import uuid
 
 SQL_SCRIPT_DIR = '{}/scripts'.format(os.path.dirname(__file__))
 INSERT_ITEM = 'insert_item.sql'
@@ -16,7 +17,8 @@ def save_to_db(database, message, metadata):
     log.info('Storing datatype reference in database')
     # This defines the kwargs that are sent in as parameters to the SQL script
     output = {
-        'uuid_ref': message.uuid,
+        'id': str(uuid.uuid4()),
+        'uuid': message.uuid,
         'meta_location': message.meta_location,
         'data_location': message.data_location,
         'datatype': metadata.get('mime.type', message.type),

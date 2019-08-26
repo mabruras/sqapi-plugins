@@ -1,6 +1,6 @@
 INSERT INTO faces (
   id,
-  uuid_ref,
+  uuid,
   meta_location,
   data_location,
   user_id,
@@ -8,7 +8,7 @@ INSERT INTO faces (
   box
 ) VALUES (
   %(id)s,
-  %(uuid_ref)s,
+  %(uuid)s,
   %(meta_location)s,
   %(data_location)s,
   %(user_id)s,

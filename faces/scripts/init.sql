@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS faces (
   id            TEXT NOT NULL PRIMARY KEY,
-  uuid_ref      TEXT,
+  uuid          TEXT,
   meta_location TEXT,
   data_location TEXT,
   user_id       TEXT,

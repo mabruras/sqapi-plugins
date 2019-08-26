@@ -1,3 +1,3 @@
 SELECT *
-FROM sizes
+FROM duplicates
 WHERE uuid = %(uuid)s

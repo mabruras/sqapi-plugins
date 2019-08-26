@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS datatypes (
-  uuid_ref       TEXT NOT NULL PRIMARY KEY,
+  id             TEXT NOT NULL PRIMARY KEY,
+  uuid           TEXT NOT NULL,
   meta_location  TEXT,
   data_location  TEXT,
   datatype       TEXT,

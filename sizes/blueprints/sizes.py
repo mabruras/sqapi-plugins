@@ -51,18 +51,18 @@ def get_items_greater_than_size(size):
     return responding.ok(items)
 
 
-@bp.route('/uuid/<uuid_ref>', methods=['GET'])
+@bp.route('/uuid/<uuid>', methods=['GET'])
 @cross_origin()
-def get_item_with_uuid(uuid_ref):
+def get_item_with_uuid(uuid):
     db = get_database()
-    uuid_dict = {'uuid_ref': uuid_ref}
+    uuid_dict = {'uuid': uuid}
 
-    log.info('Fetching entry with uuid: {}'.format(uuid_ref))
+    log.info('Fetching entry with uuid: {}'.format(uuid))
     script = get_script_path(SELECT_ITEM_BY_UUID)
     entities = db.execute_script(script, **uuid_dict)
 
     if not entities:
-        log.info('No entries found with uuid: {}'.format(uuid_ref))
+        log.info('No entries found with uuid: {}'.format(uuid))
         return responding.no_content(entities)
 
     log.debug('Entity found: {}'.format(entities))

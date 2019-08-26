@@ -8,7 +8,7 @@ from flask_cors import cross_origin
 from sqapi.api import responding
 
 SELECT_DOC_BY_LANG = 'select_doc_by_lang.sql'
-SELECT_DOC_BY_UUID = 'select_doc_by_uuidref.sql'
+SELECT_DOC_BY_UUID = 'select_doc_by_uuid.sql'
 
 log = logging.getLogger(__name__)
 bp = Blueprint(__name__, __name__, url_prefix='/languages')
@@ -32,18 +32,18 @@ def get_docs_by_lang(lang):
     return responding.ok(docs)
 
 
-@bp.route('/uuid/<uuid_ref>', methods=['GET'])
+@bp.route('/uuid/<uuid>', methods=['GET'])
 @cross_origin()
-def get_doc_for_uuid(uuid_ref):
+def get_doc_for_uuid(uuid):
     db = get_database()
-    uuid_dict = {'uuid_ref': uuid_ref}
+    uuid_dict = {'uuid': uuid}
 
-    log.info('Fetching entry with uuid: {}'.format(uuid_ref))
+    log.info('Fetching entry with uuid: {}'.format(uuid))
     script = get_script_path(SELECT_DOC_BY_UUID)
     entities = db.execute_script(script, **uuid_dict)
 
     if not entities:
-        log.info('No entries found with uuid: {}'.format(uuid_ref))
+        log.info('No entries found with uuid: {}'.format(uuid))
         return responding.no_content(entities)
 
     log.debug('Entity found: {}'.format(entities))

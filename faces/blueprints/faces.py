@@ -31,17 +31,17 @@ def find_images_of_user(user_id):
     return responding.ok(faces)
 
 
-@bp.route('/similar/<uuid_ref>', methods=['GET'])
+@bp.route('/similar/<uuid>', methods=['GET'])
 @cross_origin()
-def find_similar_images(uuid_ref):
+def find_similar_images(uuid):
     db = get_database()
     log.info('Started looking for similar encodings')
-    uuid_dict = {'uuid_ref': uuid_ref}
+    uuid_dict = {'uuid': uuid}
     script = get_script_path(SELECT_FACES_BY_IMG_UUID)
     faces = db.execute_script(script, **uuid_dict)
 
     if not faces:
-        err = 'Could not find any face encodings related to UUID: {}'.format(uuid_ref)
+        err = 'Could not find any face encodings related to UUID: {}'.format(uuid)
         log.info(err)
         return responding.invalid_request(err)
 
@@ -59,18 +59,18 @@ def find_similar_images(uuid_ref):
     return responding.ok(res)
 
 
-@bp.route('/uuid/<uuid_ref>', methods=['GET'])
+@bp.route('/uuid/<uuid>', methods=['GET'])
 @cross_origin()
-def get_faces_with_img_uuid(uuid_ref):
+def get_faces_with_img_uuid(uuid):
     db = get_database()
-    uuid_dict = {'uuid_ref': uuid_ref}
+    uuid_dict = {'uuid': uuid}
 
-    log.info('Fetching entry with uuid: {}'.format(uuid_ref))
+    log.info('Fetching entry with uuid: {}'.format(uuid))
     script = get_script_path(SELECT_FACES_BY_IMG_UUID)
     entities = db.execute_script(script, **uuid_dict)
 
     if not entities:
-        log.info('No entries found with uuid: {}'.format(uuid_ref))
+        log.info('No entries found with uuid: {}'.format(uuid))
         return responding.no_content(entities)
 
     log.debug('Entity found: {}'.format(entities))
