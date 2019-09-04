@@ -1,0 +1,14 @@
+packages:
+  pip:
+    install:
+    - 'Pillow'
+    - 'pygeohash'
+
+api:
+  blueprints_directory: 'blueprints'
+
+msg_broker:
+  supported_type:
+    - 'image/tiff'
+    - 'image/jpeg'
+    - 'image/png'
