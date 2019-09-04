@@ -10,7 +10,7 @@ from . import face_encoder
 
 SQL_SCRIPT_DIR = '{}/scripts'.format(os.path.dirname(__file__))
 INSERT_ITEM = 'insert_item.sql'
-SELECT_ALL_ENCODINGS = 'select_all_faces.sql'
+SELECT_ALL_ENCODINGS = 'select_all_encodings.sql'
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +47,7 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
         log.debug('Converting face encoding to database insert: {}'.format(face))
         out = convert_to_db_insert(message, face)
         save_to_db(database, out)
+    log.info('{} face encodings stored in database'.format(len(faces)))
 
 
 def convert_to_db_insert(message, face):
@@ -62,7 +63,7 @@ def convert_to_db_insert(message, face):
 
 
 def save_to_db(database, output):
-    log.info('Storing encoding in database')
+    log.debug('Storing encoding in database')
     log.debug(output)
 
     script = os.path.join(SQL_SCRIPT_DIR, INSERT_ITEM)

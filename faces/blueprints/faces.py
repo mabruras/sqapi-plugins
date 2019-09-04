@@ -2,11 +2,11 @@
 import logging
 import os
 
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, request
 from flask_cors import cross_origin
 from sqapi.api import responding
 
-SELECT_ALL_FACES = 'select_all_faces.sql'
+SELECT_USERS_WITH_SAMPLE = 'select_users_with_sample.sql'
 SELECT_FACES_BY_IMG_UUID = 'select_faces_by_img_uuid.sql'
 SELECT_FACES_BY_USER_ID = 'select_faces_by_user_id.sql'
 
@@ -26,7 +26,28 @@ def find_images_of_user(user_id):
     if not faces:
         err = 'Could not find any face encodings related to user_id: {}'.format(user_id)
         log.info(err)
-        return responding.invalid_request(err)
+        return responding.invalid_request(faces)
+
+    return responding.ok(faces)
+
+
+@bp.route('/profile/sample', methods=['GET'])
+@cross_origin()
+def find_users_with_samples():
+    db = get_database()
+
+    limit = request.args.get('limit') or 10
+    offset = request.args.get('offset') or 0
+    query_dict = {'limit': limit, 'offset': offset}
+    log.info('Finding users with sample image. {}'.format(query_dict))
+
+    script = get_script_path(SELECT_USERS_WITH_SAMPLE)
+    faces = db.execute_script(script, **query_dict)
+
+    if not faces:
+        err = 'Could not find any users with sample image'
+        log.info(err)
+        return responding.no_content(faces)
 
     return responding.ok(faces)
 
@@ -43,7 +64,7 @@ def find_similar_images(uuid):
     if not faces:
         err = 'Could not find any face encodings related to UUID: {}'.format(uuid)
         log.info(err)
-        return responding.invalid_request(err)
+        return responding.no_content(faces)
 
     script = get_script_path(SELECT_FACES_BY_USER_ID)
     res = [

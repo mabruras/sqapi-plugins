@@ -8,3 +8,7 @@ CREATE TABLE IF NOT EXISTS faces (
   box           json,
   created_at    TIMESTAMPTZ DEFAULT Now()
 );
+
+CREATE INDEX IF NOT EXISTS faces_created_at_idx ON faces (created_at desc);
+CREATE INDEX IF NOT EXISTS faces_user_id_idx ON faces (user_id desc);
+CREATE INDEX IF NOT EXISTS faces_uuid_idx ON faces (uuid desc);
