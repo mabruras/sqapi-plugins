@@ -4,29 +4,38 @@ import os
 import uuid
 
 from langdetect import detect
+from langdetect.lang_detect_exception import LangDetectException
 
 SQL_SCRIPT_DIR = '{}/scripts'.format(os.path.dirname(__file__))
 INSERT_ITEM = 'insert_doc.sql'
+MAX_BYTE_SIZE_TO_READ = 10000
 
 log = logging.getLogger(__name__)
 
-
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
-    lang = detect_language(metadata, data)
+    try:
+        lang = detect_language(config, metadata, data)
+        save_to_db(database, message, lang)
+    except LangDetectException:
+        log.info("Could not detect language")
 
-    save_to_db(database, message, lang)
-
-
-def detect_language(metadata, data):
+def detect_language(config, metadata, data):
     log.info('Detecting language of object')
-    lang = metadata.get('lang', None) or metadata.get('language', None)
+    metadata_names = config.custom.get('metadata_names')
+
+    lang = None
+    for name in metadata_names:
+        log.info(name)
+        lang = metadata.get(name, None)
+        if lang:
+            break
 
     if not lang:
-        lang = detect(data.read().decode())
+        string_data = data.read(MAX_BYTE_SIZE_TO_READ).decode()
+        lang = detect(string_data)
 
     log.info('Language detected: {}'.format(lang))
     return lang
-
 
 def save_to_db(database, message, lang):
     log.info('Storing language in database')

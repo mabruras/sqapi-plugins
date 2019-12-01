@@ -9,3 +9,8 @@ msg_broker:
 
 api:
   blueprints_directory: 'blueprints'
+
+custom:
+  metadata_names:
+    - lang
+    - languages
