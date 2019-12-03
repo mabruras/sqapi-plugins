@@ -13,7 +13,7 @@ def get_lat_lon(gps_info):
             d, m, s = value
             return d + (m / 60.0) + (s / 3600.0)
         except Exception as e:
-            log.warning('Could not convert "{}" to degrees: {}'.format(value, str(e)))
+            log.warning('Could not convert {} to degrees: {}'.format(value, str(e)))
 
     if gps_info:
         gps_latitude = gps_info.get("GPSLatitude")

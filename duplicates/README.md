@@ -2,6 +2,7 @@
 
 ## Intention
 This plugin uses a sha256 hash to map against objects uuid_ref.
+The sha256 is reused from the message `hash_digest` field.
 
 
 ## Accepts

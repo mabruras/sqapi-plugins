@@ -10,12 +10,13 @@ All different sqAPI logic elements are to be imported as plugins.
 This README defines how to develop new plugins,
 what is required and recommended when developing plugins for sqAPI.
 
-When using the plugins, they are to be imported into: `sqapi/plugins`.
+When using the plugins, they are to be imported into:
+`sqapi/plugins`, within the sqAPI project root directory.
 This means that when using with Docker, the plugins can be mounted by
-`-v sqapi-plugins:/opt/sqapi/plugins`
+`-v sqapi-plugins:/opt/sqapi/sqapi/plugins`
 
 ## Requirements
-There are some technical requirements for a plugin to be able to load into sqAPI
+There are some technical requirements for a plugin to be able to load into sqAPI.
 
 ### Structure
 The folder structure of a plugin is as follows:
@@ -36,13 +37,15 @@ sqapi/plugins/                 # Parent Plugins collection directory
 Blueprints are python modules containing a set of endpoints,
 where logic for fetching the plugins custom data set gets implemented.
 
-Within the blueprints directory, each API resource should exist in separate modules.
+Within the blueprints directory,
+each API resource should exist in separate modules.
 
 Eg.:
 * `./blueprints/images.py` - (Serves all `/images/*` endpoints)
 * `./blueprints/thumbnails.py` - (Serves all `/thumbnails/*` endpoints)
 
-Each of the blueprints will be automatically picked up, and referenced to by a `bp`-variable.
+Each of the blueprints will be automatically picked up,
+and referenced to by a `bp`-variable.
 sqAPI will not register the blueprint if the variable name is incorrect.
 
 This means that every blueprint module must include the `bp`-variable, preferably like follows.
@@ -54,7 +57,7 @@ bp = Blueprint(__name__, __name__, url_prefix='/thumbnails')
 ```
 
 ##### Extra
-Within the blueprints, there will be some extra object available as default.
+Within the blueprints, there will be some extra objects available as default.
 These objects are made available in each blueprint when starting up sqAPI.
 
 ###### Config
@@ -166,20 +169,27 @@ This depends on the database module implementation,
 and what kind of system is running as database.
 
 ###### Message
-This is the received message from the message broker, represented as a
+This is the received message from the message system, represented as a
 [sqAPI Message](https://github.com/mabruras/sqapi/blob/master/sqapi/core/message.py).
 It will have a `body` with a dictionary containing set of key/value pairs,
 that you could use if you see it necessary.
 
 Typical usage is to refer to the identification of the data received (`message.uuid`).
 
+The message also includes a hash digest (`message.hash_digest`) and mime type (`message.type`).
+Make sure to note that the `message.type` can explicitly be defined within the message up front of sqAPI.
+This means that the mime type will only be guessed by sqAPI if it is not already defined.
+If there is not a type defined in the message up front,
+and sqAPI is not able to guess, it will default to `application/octet-stream`.
+
 ###### Metadata
-Metadata fetched from the `metadata store`, as dictionary.
+Metadata fetched from the `metadata store`,
+or the `message` object, as dictionary.
 The key/value pairs within this object is dependent on your backend system,
 and storage solution.
 
 ###### Data
-Data object fetched from the `data store`, in bytes.
+Data object fetched from the `data store`, in a file like object.
 Access to this data object will in most cases be through the use of a file handler,
 and will typical have default IO methods available.
 
@@ -230,7 +240,7 @@ def execute(config, database, message: Message, metadata: dict, data: bytes):
 
     output = {
         'uuid_ref': message.uuid,
-        'mime_type': message.type or metadata.get('mime.type'),
+        'mime_type': message.type,
     }
 
     script = os.path.join(SQL_SCRIPT_DIR, insert_script)
@@ -247,8 +257,8 @@ so please make the README understandable and nicely formatted.
 sqAPI has its own configuration, defined at the system level.
 This should always be overwritten for each plugin,
 so we always ensure custom logic for each usage.
-For more about the configuration,
-read the [Configuration document](https://github.com/mabruras/sqapi/blob/master/resources/docs/CONFIGURATION.md).
+For more about the configuration, read the
+[Configuration document](https://github.com/mabruras/sqapi/blob/master/resources/docs/CONFIGURATION.md).
 
 ##### Example usage
 When accessing a topic of configuration, you will call it directly on the Config object.
