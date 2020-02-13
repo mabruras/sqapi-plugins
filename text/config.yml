@@ -1,0 +1,34 @@
+msg_broker:
+  supported_mime:
+  - 'text/plain'
+  - 'text/richtext'
+
+database:
+  type: 'elasticsearch'
+  kwargs:
+  # sniff_on_start: true
+  # sniff_on_connection_fail: true
+  # sniff_timeout: 10
+  # sniffer_timeout: 60
+  connection:
+  - name: 'elasticsearch'
+    port: '9200'
+    user: 'elasticuser'
+    host: 'es'
+    password: 'elasticpass'
+    timeout: 2
+
+api:
+  blueprints_directory: 'blueprints'
+
+custom:
+  metadata_index: 'metadata'
+  content_index: 'content'
+  filter_es_meta: true
+
+  flatten:
+    delimiter: '.'
+
+  index_suffix:
+    type: 'date'
+    value: '%Y-%m-%d'
