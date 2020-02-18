@@ -11,9 +11,9 @@ This README defines how to develop new plugins,
 what is required and recommended when developing plugins for sqAPI.
 
 When using the plugins, they are to be imported into:
-`sqapi/plugins`, within the sqAPI project root directory.
+`sqapi/plugin/plugins`, within the sqAPI project root directory.
 This means that when using with Docker, the plugins can be mounted by
-`-v sqapi-plugins:/opt/sqapi/sqapi/plugins`
+`-v sqapi-plugins:/opt/mab/sqapi/plugin/plugins`
 
 ## Requirements
 There are some technical requirements for a plugin to be able to load into sqAPI.
@@ -21,7 +21,7 @@ There are some technical requirements for a plugin to be able to load into sqAPI
 ### Structure
 The folder structure of a plugin is as follows:
 ```bash
-sqapi/plugins/                 # Parent Plugins collection directory
+./sqapi/plugin/plugins/        # Parent Plugins collection directory
 └── plugin_name                # Plugin directory
     ├── blueprints             # Directory for keeping blueprints
     │   ├── endpoints.py       # Blueprints for specific endpoints
@@ -85,7 +85,7 @@ db = current_app.database['image_plugin']
 The configuration file: `config.yml`, this name is not changeable.
 
 The plugin-specific configuration is used to override default configuration from
-[sqAPI-config](https://github.com/mabruras/sqapi/blob/master/sqapi/conf/sqapi.yml).
+[sqAPI-config](https://github.com/mabruras/sqapi/blob/master/src/sqapi/resources/sqapi.yml).
 
 The configuration can be extended with what ever fields
 you want to use within the business logic (both `execute` and blueprints).
@@ -170,7 +170,7 @@ and what kind of system is running as database.
 
 ###### Message
 This is the received message from the message system, represented as a
-[sqAPI Message](https://github.com/mabruras/sqapi/blob/master/sqapi/core/message.py).
+[sqAPI Message](https://github.com/mabruras/sqapi/blob/master/src/sqapi/messaging/message.py).
 It will have a `body` with a dictionary containing set of key/value pairs,
 that you could use if you see it necessary.
 
@@ -208,7 +208,7 @@ database:
 
 Note that the path is relative to the plugin directory,
 as the full project path in this example is
-`./sqapi/plugins/my_plugin/scripts/init.sql`.
+`./sqapi/plugin/plugins/my_plugin/scripts/init.sql`.
 
 By defining the script, sqAPI will automatically have
 the database initialized upon constructing the database object.

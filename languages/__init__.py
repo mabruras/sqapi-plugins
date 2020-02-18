@@ -12,12 +12,14 @@ MAX_BYTE_SIZE_TO_READ = 10000
 
 log = logging.getLogger(__name__)
 
+
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     try:
         lang = detect_language(config, metadata, data)
         save_to_db(database, message, lang)
     except LangDetectException:
         log.info("Could not detect language")
+
 
 def detect_language(config, metadata, data):
     log.info('Detecting language of object')
@@ -36,6 +38,7 @@ def detect_language(config, metadata, data):
 
     log.info('Language detected: {}'.format(lang))
     return lang
+
 
 def save_to_db(database, message, lang):
     log.info('Storing language in database')

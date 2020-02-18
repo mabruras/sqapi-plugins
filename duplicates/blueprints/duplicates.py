@@ -4,7 +4,6 @@ import os
 
 from flask import Blueprint, current_app
 from flask_cors import cross_origin
-
 from sqapi.api import responding
 
 SELECT_DUP_BY_SHA = 'select_dup_by_sha256.sql'

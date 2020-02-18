@@ -9,6 +9,6 @@ api:
 
 msg_broker:
   supported_type:
-    - 'image/tiff'
-    - 'image/jpeg'
-    - 'image/png'
+  - 'image/tiff'
+  - 'image/jpeg'
+  - 'image/png'

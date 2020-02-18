@@ -4,7 +4,6 @@ import os
 
 from flask import Blueprint, current_app
 from flask_cors import cross_origin
-
 from sqapi.api import responding
 
 SELECT_DOC_BY_LANG = 'select_doc_by_lang.sql'

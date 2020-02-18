@@ -4,7 +4,6 @@ import os
 
 from flask import Blueprint, current_app
 from flask_cors import cross_origin
-
 from sqapi.api import responding
 
 SELECT_ITEMS_LT_SIZE = 'select_items_lt_size.sql'

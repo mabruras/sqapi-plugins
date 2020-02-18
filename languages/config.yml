@@ -12,5 +12,5 @@ api:
 
 custom:
   metadata_names:
-    - lang
-    - languages
+  - lang
+  - languages
