@@ -1,4 +1,5 @@
 import io
+import json
 import logging
 import os
 from datetime import datetime
@@ -22,7 +23,22 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     save_to_db(database, message, meta_idx, idx_suffix, **meta)
 
     log.info('Indexing text')
-    save_to_db(database, message, content_idx, idx_suffix, **{'text': data.read().decode('utf-8')})
+    decode_values = data.read().decode('utf-8')
+
+    try:
+        # If content is parsable to JSON format,
+        # it should be flatten and indexed directly
+        log.debug('Attempting to parse into JSON')
+        loaded_json = json.loads(decode_values)
+
+        log.info('Successfully parsing content to JSON')
+        content = flatten_dict(loaded_json, delimiter)
+
+    except json.JSONDecodeError:
+        log.info('Storing content as text')
+        content = {'text': decode_values}
+
+    save_to_db(database, message, content_idx, idx_suffix, **content)
 
 
 def get_suffix(config):
@@ -36,7 +52,7 @@ def get_suffix(config):
     return suf.get('value', '')
 
 
-def flatten_dict(in_dict: dict, delimiter: chr = '.'):
+def flatten_dict(in_dict: dict, delimiter: chr = '.') -> dict:
     """
     Function borrowed from: https://towardsdatascience.com/flattening-json-objects-in-python-f5343c794b10
 

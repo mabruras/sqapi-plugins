@@ -33,15 +33,15 @@ def search_all_fields(idx):
 
 @bp.route('/index/<idx>', methods=['GET'])
 @cross_origin()
-def get_all_by_uuid(idx):
-    uuid_ref = request.args.get('uuid')
-    if not uuid_ref:
+def get_all_by_params(idx):
+    if not request.args:
         return responding.invalid_request('Missing uuid parameter')
 
     db = get_database()
 
-    log.info('Fetching all documents with uuid: {}'.format(uuid_ref))
-    result = db.fetch_document(idx + '*', {'uuid': uuid_ref}, 'match')
+    log.info('Fetching all documents matching: {}'.format(request.args))
+    query = {'must': [{'match': {b: request.args[b]}} for b in request.args]}
+    result = db.fetch_document(idx + '*', query, 'bool')
 
     if not result:
         log.info('No entries found')
