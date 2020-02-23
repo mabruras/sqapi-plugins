@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
-    img = Image.open(data)
+    img = Image.open(io.BytesIO(data.read()))
     exif, gps = get_exif_data(img)
     geohash = get_geohash(gps)
 
