@@ -27,7 +27,6 @@ def detect_language(config, metadata, data):
 
     lang = None
     for name in metadata_names:
-        log.info(name)
         lang = metadata.get(name, None)
         if lang:
             break

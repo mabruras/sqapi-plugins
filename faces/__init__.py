@@ -20,9 +20,9 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     already_processed = _find_existing(database, message.hash_digest)
 
     if already_processed:
-        for enc, uid, box in already_processed:
-            o = convert_to_db_insert(message, {'encoding': enc, 'user_id': uid, 'box': box})
-            save_to_db(database, o)
+        enc, uid, box = already_processed[0]
+        o = convert_to_db_insert(message, {'encoding': enc, 'user_id': uid, 'box': box})
+        save_to_db(database, o)
 
         return
 

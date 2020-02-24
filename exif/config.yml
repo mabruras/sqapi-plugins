@@ -8,7 +8,7 @@ api:
   blueprints_directory: 'blueprints'
 
 msg_broker:
-  supported_type:
+  supported_mime:
   - 'image/tiff'
   - 'image/jpeg'
   - 'image/png'
