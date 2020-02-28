@@ -27,6 +27,12 @@ custom:
   content_index: 'content'
   filter_es_meta: true
 
+  # Limit result to specific fields
+  limited_fields:
+  - 'uuid'
+  - 'meta_location'
+  - 'data_location'
+
   flatten:
     delimiter: '.'
 

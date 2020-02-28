@@ -10,46 +10,75 @@ log = logging.getLogger(__name__)
 
 
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
-    idx_suffix = get_suffix(config)
-
     meta_idx = config.custom.get('metadata_index')
     content_idx = config.custom.get('content_index')
+    if not (meta_idx and content_idx):
+        raise LookupError('Missing index definition, cannot save to storage')
 
+    log.info('Indexing metadata')
     flatten = config.custom.get('flatten', {})
     delimiter = flatten.get('delimiter', '.')
     meta = flatten_dict(metadata, delimiter) if flatten else metadata
 
-    log.info('Indexing metadata')
-    save_to_db(database, message, meta_idx, idx_suffix, **meta)
-
     log.info('Indexing text')
-    decode_values = data.read().decode('utf-8')
+    content = parse_content(data.read().decode('utf-8'))
 
+    storage_data = {meta_idx: dict(), content_idx: dict()}
+    storage_data[meta_idx].update(meta)
+    storage_data[content_idx].update(content)
+
+    save_to_db(config, database, message, storage_data)
+
+
+def parse_content(decode_values):
     try:
-        # If content is parsable to JSON format,
-        # it should be flatten and indexed directly
+        # If content is parsable to JSON format, it should sort
+        # all keys and values into two separate fields for indexing
         log.debug('Attempting to parse into JSON')
         loaded_json = json.loads(decode_values)
+        log.debug('Loaded JSON: {}'.format(loaded_json))
 
         log.info('Successfully parsing content to JSON')
-        content = flatten_dict(loaded_json, delimiter)
+        parsed_json = get_all_json_keys_and_values(loaded_json)
+        log.debug('Parsed JSON: {}'.format(parsed_json))
+        content = {
+            'keys': ' '.join([str(k) for k in parsed_json.get('keys')]),
+            'content': ' '.join([str(k) for k in parsed_json.get('values')]),
+        }
+        log.info('Successfully extracting keys and values from JSON')
 
     except json.JSONDecodeError:
-        log.info('Storing content as text')
-        content = {'text': decode_values}
+        log.info('Could not parse JSON, expecting content to be text')
+        content = {'content': decode_values}
 
-    save_to_db(database, message, content_idx, idx_suffix, **content)
+    return content
 
 
-def get_suffix(config):
-    suf = config.custom.get('index_suffix')
+def get_all_json_keys_and_values(loaded_json):
+    keys = set()
+    values = set()
 
-    if not suf:
-        return ''
-    elif suf.get('type') == 'date':
-        return '_' + datetime.now().strftime(suf.get('value'))
+    def extract_keys(item):
+        if type(item) is dict:
+            # keys.update(item.keys())
 
-    return suf.get('value', '')
+            for key in item:
+                keys.add(key)
+                extract_keys(item[key])
+
+        elif type(item) is list:
+            for e in item:
+                extract_keys(e)
+
+        else:
+            values.add(item)
+
+    extract_keys(loaded_json)
+
+    return {
+        'keys': keys,
+        'values': values
+    }
 
 
 def flatten_dict(in_dict: dict, delimiter: chr = '.') -> dict:
@@ -79,17 +108,30 @@ def flatten_dict(in_dict: dict, delimiter: chr = '.') -> dict:
     return out
 
 
-def save_to_db(database, message, idx, idx_suffix='', **body):
-    if not idx:
-        log.warning('Missing index definition, cannot save to storage')
-        return
+def _get_index_suffix(config):
+    suf = config.custom.get('index_suffix')
 
-    output = {
-        **body,
-        'uuid': message.uuid,
-        'meta_location': message.meta_location,
-        'data_location': message.data_location,
-    }
-    log.debug(output)
+    if not suf:
+        return ''
+    elif suf.get('type') == 'date':
+        return '_' + datetime.now().strftime(suf.get('value'))
 
-    database.create_document(idx + idx_suffix, output)
+    return suf.get('value', '')
+
+
+def save_to_db(config, database, message, body):
+    log.info('Saving body: {}'.format(body))
+
+    for idx in body.keys():
+        log.debug('Saving for index ({}), body: {}'.format(idx, body.get(idx, {})))
+
+        output = {
+            **body.get(idx, {}),
+            'uuid': message.uuid,
+            'meta_location': message.meta_location,
+            'data_location': message.data_location,
+        }
+        log.debug(output)
+
+        index_suffix = _get_index_suffix(config)
+        database.create_document(idx + index_suffix, output)

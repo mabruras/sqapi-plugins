@@ -21,13 +21,8 @@ def search_all_fields(idx):
     db = get_database()
 
     log.info('Searching for text: {}'.format(text))
-    result = db.fetch_document(idx + '*', {'query': text, 'fields': ['*']}, 'multi_match')
+    result = db.fetch_document(idx + '*', {'query': text, 'fields': ['*']}, 'multi_match', **dict(request.args))
 
-    if not result:
-        log.info('No entries found')
-        return responding.no_content(result)
-
-    log.debug('Entries: {}'.format(result))
     return filter_results(result)
 
 
@@ -35,27 +30,39 @@ def search_all_fields(idx):
 @cross_origin()
 def get_all_by_params(idx):
     if not request.args:
-        return responding.invalid_request('Missing uuid parameter')
+        return responding.invalid_request('Missing parameters to query against')
 
-    db = get_database()
+    # Remove pagination variables from query params
+    pagination_args = ['start', 'size']
+    args = {k: request.args[k] for k in request.args.keys() if k not in pagination_args}
 
-    log.info('Fetching all documents matching: {}'.format(request.args))
-    query = {'must': [{'match': {b: request.args[b]}} for b in request.args]}
-    result = db.fetch_document(idx + '*', query, 'bool')
+    log.info('Fetching all documents matching: {}'.format(args))
+    query = {'must': [{'match': {b: request.args[b]}} for b in args]}
+    result = get_database().fetch_document(idx + '*', query, 'bool', **dict(request.args))
 
-    if not result:
-        log.info('No entries found')
-        return responding.no_content(result)
-
-    log.debug('Entries: {}'.format(result))
     return filter_results(result)
 
 
 def filter_results(result):
-    only_source = get_config().custom.get('filter_es_meta', True)
+    log.debug('Entries: {}'.format(result))
 
+    limited_fields = get_config().custom.get('limited_fields', [])
+    log.debug('Filtering results to only contain: {}'.format(limited_fields))
+
+    if limited_fields:
+        for entry in result.get('hits'):
+            entry['_source'] = {
+                key: entry.get('_source')[key]
+                for key in entry.get('_source')
+                if key in limited_fields
+            }
+
+    log.info('Post filter: {}'.format(result))
+
+    only_source = get_config().custom.get('filter_es_meta', False)
     if only_source:
-        return responding.ok([r.get('_source') for r in result])
+        result['hits'] = [r.get('_source') for r in result.get('hits')]
+        return responding.ok(result)
 
     return responding.ok(result)
 
