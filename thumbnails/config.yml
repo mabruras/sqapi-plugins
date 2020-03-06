@@ -3,8 +3,8 @@ packages:
     install:
     - 'Pillow'
 
-msg_broker:
-  supported_mime:
+plugin:
+  mime_types:
   - 'image/jpeg'
   - 'image/png'
   - 'image/gif'

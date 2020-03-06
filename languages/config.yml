@@ -3,8 +3,8 @@ packages:
     install:
     - 'langdetect'
 
-msg_broker:
-  supported_mime:
+plugin:
+  mime_types:
   - 'text/plain'
 
 api:

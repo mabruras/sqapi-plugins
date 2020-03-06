@@ -48,7 +48,7 @@ def parse_content(decode_values):
         log.info('Successfully extracting keys and values from JSON')
 
     except json.JSONDecodeError:
-        log.info('Could not parse JSON, expecting content to be text')
+        log.warning('Could not parse JSON, expecting content to be text')
         content = {'content': decode_values}
 
     return content
@@ -60,8 +60,6 @@ def get_all_json_keys_and_values(loaded_json):
 
     def extract_keys(item):
         if type(item) is dict:
-            # keys.update(item.keys())
-
             for key in item:
                 keys.add(key)
                 extract_keys(item[key])
@@ -120,7 +118,7 @@ def _get_index_suffix(config):
 
 
 def save_to_db(config, database, message, body):
-    log.info('Saving body: {}'.format(body))
+    log.debug('Saving body: {}'.format(body))
 
     for idx in body.keys():
         log.debug('Saving for index ({}), body: {}'.format(idx, body.get(idx, {})))

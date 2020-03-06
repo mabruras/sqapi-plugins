@@ -6,8 +6,8 @@ packages:
     - 'face_recognition'
     - 'numpy'
 
-msg_broker:
-  supported_mime:
+plugin:
+  mime_types:
   - 'image/jpeg'
   - 'image/png'
   - 'image/gif'

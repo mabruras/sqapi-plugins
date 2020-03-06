@@ -1,5 +1,5 @@
-msg_broker:
-  supported_mime:
+plugin:
+  mime_types:
   - 'text/plain'
   - 'text/richtext'
   - 'application/json'
