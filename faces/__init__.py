@@ -40,12 +40,12 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     existing = database.execute_script(script)
 
     log.info('Comparing detected face encodings towards existing')
-    compare_and_save(database, existing, faces, message)
+    compare_and_save(config, database, existing, faces, message)
 
 
-def compare_and_save(database, existing, faces, message):
+def compare_and_save(config, database, existing, faces, message):
     for face in faces:
-        profile, dist = face_encoder.compare_face_with_existing(face, existing)
+        profile, dist = face_encoder.compare_face_with_existing(config, face, existing)
         log.debug('Closest profile found (dist={}): {}'.format(dist, profile))
 
         face.update({'user_id': profile.get('user_id')})

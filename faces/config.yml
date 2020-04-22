@@ -16,5 +16,6 @@ api:
   blueprints_directory: 'blueprints'
 
 custom:
-  min_width: 100
-  min_height: 100
+  min_width: 100   # Measured in pixels
+  min_height: 100  # Measured in pixels
+  tolerance: 0.43  # Lower is more strict (0 = exact same picture)

@@ -46,7 +46,7 @@ def find_encodings_with_locations(img):
     return [(enc, loc) for (enc, loc) in zip(encodings, locations)]
 
 
-def compare_face_with_existing(face, existing_faces):
+def compare_face_with_existing(config, face, existing_faces):
     log.debug('face: {}'.format(face))
     log.debug('existing_faces: {}'.format(existing_faces))
 
@@ -59,9 +59,6 @@ def compare_face_with_existing(face, existing_faces):
     closest_profile = dict(default_profile)
     closest_distance = 1
 
-    log.debug('Testing for-loop')
-    log.debug(distance_encodings)
-
     log.debug('Comparing distances between new and existing encodings')
     for de in distance_encodings:
         log.debug('Comparing current distance ({}) against closest distance ({})'.format(
@@ -73,4 +70,6 @@ def compare_face_with_existing(face, existing_faces):
             closest_profile = de.get('face')
 
     log.debug('Comparison complete. Closest profile={}, distance={}'.format(closest_profile, closest_distance))
-    return (closest_profile, closest_distance) if closest_distance < 0.45 else (default_profile, 1)
+    comparison_threshold = config.custom.get('tolerance', 0.45)
+
+    return (closest_profile, closest_distance) if closest_distance < comparison_threshold else (default_profile, 1)
