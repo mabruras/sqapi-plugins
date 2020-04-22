@@ -17,9 +17,11 @@ log = logging.getLogger(__name__)
 
 
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
+    log.info('Searching for existing items of same hash')
     already_processed = _find_existing(database, message.hash_digest)
 
     if already_processed:
+        log.info('Equal item already processed, reusing same result')
         enc, uid, box = already_processed[0]
         o = convert_to_db_insert(message, {'encoding': enc, 'user_id': uid, 'box': box})
         save_to_db(database, o)
@@ -28,13 +30,20 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
 
     verify_image_size(config, data, message)
 
-    log.info('Finding face encodings in image files')
     faces = face_encoder.find_face_encodings_with_location(data)
-    log.info('{} faces found in image'.format(len(faces)))
+    log.info('{} face encodings found'.format(len(faces)))
+
+    if not faces:
+        raise LookupError('Zero faces found in picture')
 
     script = os.path.join(SQL_SCRIPT_DIR, SELECT_ALL_ENCODINGS)
     existing = database.execute_script(script)
 
+    log.info('Comparing detected face encodings towards existing')
+    compare_and_save(database, existing, faces, message)
+
+
+def compare_and_save(database, existing, faces, message):
     for face in faces:
         profile, dist = face_encoder.compare_face_with_existing(face, existing)
         log.debug('Closest profile found (dist={}): {}'.format(dist, profile))
@@ -45,8 +54,6 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
         out = convert_to_db_insert(message, face)
         save_to_db(database, out)
 
-    log.info('{} face encodings stored in database'.format(len(faces)))
-
 
 def _find_existing(db, hash_digest):
     script = os.path.join(SQL_SCRIPT_DIR, SELECT_BY_HASH)
@@ -56,11 +63,12 @@ def _find_existing(db, hash_digest):
 
 
 def verify_image_size(config, data, message):
-    log.info('Verifying image size')
-    im = Image.open(data)
-    width, height = im.size
     min_height = config.custom.get('min_height', 100)
     min_width = config.custom.get('min_width', 100)
+    log.info('Checking image size towards threshold ({}x{})'.format(min_width, min_height))
+
+    im = Image.open(data)
+    width, height = im.size
 
     if width < min_width or height < min_height:
         raise AttributeError('Size of image {} was not valid. Actual: {}, minimum values: {})'.format(

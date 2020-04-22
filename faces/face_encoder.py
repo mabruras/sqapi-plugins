@@ -27,7 +27,6 @@ def find_face_encodings_with_location(file):
         for encoding, (y1, x2, y2, x1) in encs_locs
     ]
 
-    log.info('{} faces detected'.format(len(results)))
     log.debug(results)
 
     return results

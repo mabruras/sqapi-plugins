@@ -38,17 +38,20 @@ def parse_content(decode_values):
         loaded_json = json.loads(decode_values)
         log.debug('Loaded JSON: {}'.format(loaded_json))
 
-        log.info('Successfully parsing content to JSON')
+        log.debug('Successfully parsing content to JSON')
         parsed_json = get_all_json_keys_and_values(loaded_json)
         log.debug('Parsed JSON: {}'.format(parsed_json))
         content = {
             'keys': ' '.join([str(k) for k in parsed_json.get('keys')]),
             'content': ' '.join([str(k) for k in parsed_json.get('values')]),
         }
-        log.info('Successfully extracting keys and values from JSON')
+        log.debug('Successfully extracted keys and values from JSON')
 
-    except json.JSONDecodeError:
-        log.warning('Could not parse JSON, expecting content to be text')
+        log.info('Content detected as JSON and parsed')
+
+    except json.JSONDecodeError as e:
+        log.debug('Could not parse JSON: {}', e)
+        log.info('Content seems to be plain text')
         content = {'content': decode_values}
 
     return content
@@ -87,6 +90,7 @@ def flatten_dict(in_dict: dict, delimiter: chr = '.') -> dict:
     :param delimiter: character to separate joined values
     :return: flatten dictionary
     """
+    log.debug('Flattening dictionary')
     out = {}
 
     def flatten(x, name=''):

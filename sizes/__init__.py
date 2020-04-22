@@ -10,8 +10,9 @@ log = logging.getLogger(__name__)
 
 
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
-    log.info('Getting metadata count and size of data payload')
     sizes = get_sizes(metadata, data)
+    log.info('Metadata count: {}, payload size: {}'.format(*sizes))
+
     out = convert_to_db_insert(message, *sizes)
     save_to_db(database, out)
 
@@ -41,7 +42,7 @@ def convert_to_db_insert(message, meta_size, data_size):
 
 
 def save_to_db(database, output):
-    log.info('Storing sizes in database')
+    log.debug('Storing sizes in database')
     log.debug(output)
 
     script = os.path.join(SQL_SCRIPT_DIR, INSERT_ITEM)

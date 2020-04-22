@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 
 
 def tiff_exif(img):
+    log.debug('Image of type TIFF')
     exif = img.tag
     tags = TiffTags.TAGS
 
@@ -18,6 +19,7 @@ def tiff_exif(img):
 
 
 def jpeg_exif(img):
+    log.debug('Image of type JPEG or PNG')
     exif = img._getexif() or {}
     tags = ExifTags.TAGS
 

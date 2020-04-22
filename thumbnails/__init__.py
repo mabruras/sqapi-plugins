@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 
 
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
+    log.info('Searching for existing items of same hash')
     existing = _find_existing(database, message.hash_digest)
 
     thumbnail_data = existing or create_thumbnail(config, data)
@@ -30,7 +31,7 @@ def _find_existing(db, hash_digest):
 def create_thumbnail(config, data):
     width = config.custom.get('thumb_size', {}).get('width', 128)
     height = config.custom.get('thumb_size', {}).get('height', 128)
-    log.debug('Creating thumbnail with width/height: {}/{}'.format(width, height))
+    log.info('Creating thumbnail with width/height: {}/{}'.format(width, height))
 
     try:
         im = Image.open(data)
@@ -44,11 +45,11 @@ def create_thumbnail(config, data):
     except IOError as e:
         err = 'Cannot create thumbnail for {}: {}'.format(data, str(e))
         log.warning(err)
-        raise Exception(err)
+        raise IOError(err, e)
 
 
 def save_to_db(database, message, thumbnail_data):
-    log.info('Storing thumbnail reference in database')
+    log.debug('Storing thumbnail in database')
 
     output = {
         'id': str(uuid.uuid4()),
@@ -61,5 +62,4 @@ def save_to_db(database, message, thumbnail_data):
     log.debug(output)
 
     script = os.path.join(SQL_SCRIPT_DIR, INSERT_ITEM)
-
     database.execute_script(script, **output)

@@ -12,12 +12,11 @@ log = logging.getLogger(__name__)
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
     sha_256 = message.hash_digest
 
+    log.info('Calculated sha-256: {}'.format(sha_256))
     save_to_db(database, message, sha_256)
 
 
 def save_to_db(database, message, sha_256):
-    log.info('Storing hash in database')
-
     output = {
         'id': str(uuid.uuid4()),
         'uuid': message.uuid,
