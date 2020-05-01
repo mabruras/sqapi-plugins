@@ -1,0 +1,5 @@
+api:
+  blueprints_directory: 'blueprints'
+
+custom:
+  chunk_size: 65536
