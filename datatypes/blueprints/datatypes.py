@@ -7,6 +7,7 @@ from flask_cors import cross_origin
 from sqapi.api import responding
 
 SELECT_ALL_DATA_TYPES = 'select_datatypes_count.sql'
+SELECT_BY_UUID = 'select_by_uuid.sql'
 SELECT_BY_DATA_TYPES = 'select_by_datatype.sql'
 SELECT_BY_DATA_TYPES_ON_DATE = 'select_by_datatype_on_date.sql'
 
@@ -16,48 +17,53 @@ bp = Blueprint(__name__, __name__, url_prefix='/datatypes')
 
 @bp.route('/', methods=['GET'])
 @cross_origin()
-def get_all_datatypes():
+def get_all_data_types():
     db = get_database()
-
-    log.info('Fetching all datatypes')
-    script = get_script_path(SELECT_ALL_DATA_TYPES)
-    datatypes = db.execute_script(script)
-
-    if not datatypes:
-        log.info('No entries found.')
-        return responding.no_content(datatypes)
-
-    log.debug('Entries: {}'.format(datatypes))
-    return responding.ok(datatypes)
-
-
-@bp.route('/uuidrefs', methods=['GET'])
-@cross_origin()
-def get_all_refs():
-    db = get_database()
-    req_datatype = request.args.get('datatype')
+    req_data_type = request.args.get('datatype')
     req_date = request.args.get('date')
-    if not req_datatype:
-        log.debug('No query parameter was passed to the method. Returning empty')
-        return responding.no_content([])
+    limit = request.args.get('limit') or 10
+    offset = request.args.get('offset') or 0
 
-    if req_datatype and req_date:
+    if not req_data_type:
+        log.info('Fetching all data types')
+        fields = {}
+        script = get_script_path(SELECT_ALL_DATA_TYPES)
+
+    elif req_data_type and req_date:
+        log.info('Fetching by type ({}), limited by date ({})'.format(req_data_type, req_date))
+        fields = {'datatype': req_data_type, 'anydate': req_date, 'limit': limit, 'offset': offset}
         script = get_script_path(SELECT_BY_DATA_TYPES_ON_DATE)
-        datatype = {'datatype': req_datatype, 'anydate': req_date}
-        log.info('Fetching ref uuids for datatype, anydate: {}'.format(datatype))
-        entities = db.execute_script(script, **datatype)
 
     else:
+        log.info('Fetching by data type: {}'.format(req_data_type))
+        fields = {'datatype': req_data_type, 'limit': limit, 'offset': offset}
         script = get_script_path(SELECT_BY_DATA_TYPES)
-        datatype = {'datatype': req_datatype}
-        entities = db.execute_script(script, **datatype)
 
+    entities = db.execute_script(script, **fields)
     if not entities:
-        log.info('No entries found for datatype: {}'.format(datatype))
-        return responding.no_content([])
+        log.info('No entities found for data type: {}'.format(req_data_type))
+        return responding.no_content(entities)
 
-    log.debug('Entity found: {}'.format(entities))
+    log.debug('Entities found: {}'.format(entities))
     return responding.ok(entities)
+
+
+@bp.route('/<uuid>', methods=['GET'])
+@cross_origin()
+def get_data_type_of_uuid(uuid):
+    db = get_database()
+    query_dict = {'uuid': uuid}
+
+    log.info('Fetching entry with uuid: {}'.format(uuid))
+    script = get_script_path(SELECT_BY_UUID)
+    items = db.execute_script(script, **query_dict)
+
+    if not items:
+        log.info('No entry found with uuid: {}'.format(uuid))
+        return responding.no_content(items)
+
+    log.debug('Entry with uuid: {}, {}'.format(uuid, items))
+    return responding.ok(items)
 
 
 def get_script_path(name):

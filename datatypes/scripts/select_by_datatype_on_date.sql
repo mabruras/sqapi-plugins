@@ -3,3 +3,5 @@ SELECT dt.*
 FROM datatypes dt
 WHERE dt.datatype = %(datatype)s
 AND dt.created_at BETWEEN %(anydate)s::date AND %(anydate)s::date + interval '1' day
+LIMIT %(limit)s
+OFFSET %(offset)s
