@@ -1,13 +1,55 @@
+import io
 import logging
+import threading
 import uuid
 
 import face_recognition
 import numpy
+from PIL import Image
 
 log = logging.getLogger(__name__)
 
 
-def find_face_encodings_with_location(file):
+def find_face_encodings_with_location(file, config=None):
+    degrees = config.custom.get('rotation', {}).get('degrees', 360) if config else 360
+    number_of_rotations = 360 // (degrees or 360)
+    out = []
+
+    thread_pool = [
+        threading.Thread(target=execute_face_detection, args=[
+            open(file.name, 'rb'), x * degrees, out
+        ]) for x in range(number_of_rotations)
+    ]
+
+    log.info('{} rotations of {} degrees'.format(number_of_rotations, degrees))
+
+    log.debug('Starting thread pool')
+    [t.start() for t in thread_pool]
+    log.debug('Collecting threads')
+    [t.join() for t in thread_pool]
+    log.debug('Threads collected')
+
+    return out
+
+
+def execute_face_detection(file, degrees, out):
+    if degrees and degrees < 360:
+        log.debug('Rotating image {} degrees (total rotation:'.format(degrees))
+        file = rotate_image(file, degrees)
+    log.info('Locating face encodings in image, by {} degrees rotation'.format(degrees))
+    out += find_face_encodings(file, degrees)
+
+
+def rotate_image(file, degrees):
+    bio = io.BytesIO()
+    img = Image.open(file)
+    rotated = img.rotate(degrees)
+    rotated.save(bio, img.format)
+
+    return bio
+
+
+def find_face_encodings(file, degrees=0):
     img = face_recognition.load_image_file(file)
     log.debug('Image loaded')
 
@@ -17,6 +59,7 @@ def find_face_encodings_with_location(file):
     results = [
         dict({
             'encoding': encoding.tolist(),
+            'degrees': degrees,
             'box': {
                 'y': y1,
                 'x': x1,

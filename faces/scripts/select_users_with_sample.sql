@@ -1,4 +1,4 @@
-SELECT total, faces.user_id, uuid, box, created_at
+SELECT total, faces.user_id, uuid, degrees, box, created_at
 FROM (
   SELECT user_id, max(id) as id, count(*) as total
   FROM faces

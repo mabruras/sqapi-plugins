@@ -1,3 +1,3 @@
-SELECT uuid, user_id, box, created_at
+SELECT uuid, user_id, degrees, box, created_at
 FROM faces
 WHERE uuid = %(uuid)s

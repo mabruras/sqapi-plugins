@@ -22,15 +22,15 @@ def execute(config, database, message, metadata: dict, data: io.BufferedReader):
 
     if already_processed:
         log.info('Equal item already processed, reusing same result')
-        enc, uid, box = already_processed[0]
-        o = convert_to_db_insert(message, {'encoding': enc, 'user_id': uid, 'box': box})
+        enc, uid, degrees, box = already_processed[0]
+        o = convert_to_db_insert(message, {'encoding': enc, 'user_id': uid, 'degrees': degrees, 'box': box})
         save_to_db(database, o)
 
         return
 
     verify_image_size(config, data, message)
 
-    faces = face_encoder.find_face_encodings_with_location(data)
+    faces = face_encoder.find_face_encodings_with_location(data, config)
     log.info('{} face encodings found'.format(len(faces)))
 
     if not faces:
@@ -59,7 +59,7 @@ def _find_existing(db, hash_digest):
     script = os.path.join(SQL_SCRIPT_DIR, SELECT_BY_HASH)
     res = db.execute_script(script, **{'hash_digest': hash_digest})
 
-    return [(f.get('encoding'), f.get('user_id'), f.get('box')) for f in res]
+    return [(f.get('encoding'), f.get('user_id'), f.get('degrees'), f.get('box')) for f in res]
 
 
 def verify_image_size(config, data, message):
@@ -84,6 +84,7 @@ def convert_to_db_insert(message, face):
         'uuid': message.uuid,
         'meta_location': message.meta_location,
         'data_location': message.data_location,
+        'degrees': face.get('degrees', 0),
         'hash_digest': message.hash_digest,
         'encoding': face.get('encoding', list()),
         'user_id': face.get('user_id', None),

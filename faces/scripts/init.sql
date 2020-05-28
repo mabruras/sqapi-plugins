@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS faces (
   uuid          TEXT,
   meta_location TEXT,
   data_location TEXT,
+  degrees       INTEGER,
   hash_digest   TEXT,
   user_id       TEXT,
   encoding      FLOAT [],

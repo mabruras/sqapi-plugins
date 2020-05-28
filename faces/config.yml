@@ -19,3 +19,7 @@ custom:
   min_width: 100   # Measured in pixels
   min_height: 100  # Measured in pixels
   tolerance: 0.43  # Lower is more strict (0 = exact same picture)
+
+  # Rotation of picture - will extend processing time with N*rotations
+  rotation:        # Exclude to avoid rotation of picture
+    degrees: 90    # Degrees to rotate (90 = 3 rotations/4 executions. 360 or 0 = 0 rotations/1 execution)
