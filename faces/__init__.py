@@ -4,55 +4,52 @@ import logging
 import os
 import uuid
 
-from PIL import Image
+from PIL import Image, ImageFile
 
 from . import face_encoder
 
 SQL_SCRIPT_DIR = '{}/scripts'.format(os.path.dirname(__file__))
-INSERT_ITEM = 'insert_item.sql'
-SELECT_ALL_ENCODINGS = 'select_all_encodings.sql'
-SELECT_BY_HASH = 'select_face_by_hash.sql'
+
+INSERT_IMAGE_ITEM = 'face/insert.sql'
+SELECT_BY_HASH = 'face/select_by_hash.sql'
+
+INSERT_ENCODING_ITEM = 'encoding/insert.sql'
+SELECT_CLOSEST_MATCH = 'encoding/select_closest_match.sql'
 
 log = logging.getLogger(__name__)
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def execute(config, database, message, metadata: dict, data: io.BufferedReader):
-    log.info('Searching for existing items of same hash')
-    already_processed = _find_existing(database, message.hash_digest)
-
-    if already_processed:
-        log.info('Equal item already processed, reusing same result')
-        enc, uid, degrees, box = already_processed[0]
-        o = convert_to_db_insert(message, {'encoding': enc, 'user_id': uid, 'degrees': degrees, 'box': box})
-        save_to_db(database, o)
-
+    if is_image_too_small(config, data, message):
+        log.info('Image height/width to small')
         return
 
-    verify_image_size(config, data, message)
+    if not _find_existing(database, message.hash_digest):
+        try:
+            extract_face_encodings(config, database, message, data)
 
-    faces = face_encoder.find_face_encodings_with_location(data, config)
-    log.info('{} face encodings found'.format(len(faces)))
+        except AttributeError as e:
+            log.debug(str(e))
+            return
 
-    if not faces:
-        raise LookupError('Zero faces found in picture')
-
-    script = os.path.join(SQL_SCRIPT_DIR, SELECT_ALL_ENCODINGS)
-    existing = database.execute_script(script)
-
-    log.info('Comparing detected face encodings towards existing')
-    compare_and_save(config, database, existing, faces, message)
+    save_image_to_db(database, {
+        'uuid': message.uuid,
+        'meta_location': message.meta_location,
+        'data_location': message.data_location,
+        'hash_digest': message.hash_digest,
+    })
 
 
-def compare_and_save(config, database, existing, faces, message):
-    for face in faces:
-        profile, dist = face_encoder.compare_face_with_existing(config, face, existing)
-        log.debug('Closest profile found (dist={}): {}'.format(dist, profile))
+def is_image_too_small(config, data, message):
+    min_height = config.custom.get('min_height', 100)
+    min_width = config.custom.get('min_width', 100)
+    log.info('Checking image size towards threshold ({}x{})'.format(min_width, min_height))
 
-        face.update({'user_id': profile.get('user_id')})
+    im = Image.open(data)
+    width, height = im.size
 
-        log.debug('Converting face encoding to database insert: {}'.format(face))
-        out = convert_to_db_insert(message, face)
-        save_to_db(database, out)
+    return width < min_width or height < min_height
 
 
 def _find_existing(db, hash_digest):
@@ -62,39 +59,52 @@ def _find_existing(db, hash_digest):
     return [(f.get('encoding'), f.get('user_id'), f.get('degrees'), f.get('box')) for f in res]
 
 
-def verify_image_size(config, data, message):
-    min_height = config.custom.get('min_height', 100)
-    min_width = config.custom.get('min_width', 100)
-    log.info('Checking image size towards threshold ({}x{})'.format(min_width, min_height))
+def extract_face_encodings(config, database, message, data):
+    faces = face_encoder.find_face_encodings_with_location(data, config)
 
-    im = Image.open(data)
-    width, height = im.size
+    if not faces:
+        raise AttributeError('No faces found in picture')
 
-    if width < min_width or height < min_height:
-        raise AttributeError('Size of image {} was not valid. Actual: {}, minimum values: {})'.format(
-            message.uuid,
-            (width, height),
-            (min_height, min_width)
-        ))
+    log.info(f'Total of {len(faces)} face encodings found')
+    comparison_threshold = config.custom.get('tolerance', 0.45)
+
+    for encoding in faces:
+        log.debug('Comparing detected face encodings towards existing')
+        script = os.path.join(SQL_SCRIPT_DIR, SELECT_CLOSEST_MATCH)
+        closest_match = database.execute_script(script, **{
+            'low_vectors': encoding.get('low_vectors'),
+            'high_vectors': encoding.get('high_vectors'),
+            'threshold': comparison_threshold,
+        })
+
+        encoding.update({'user_id': closest_match[0].get('user_id') if closest_match else str(uuid.uuid4())})
+
+        out = convert_to_db_insert(message, encoding)
+        save_encodings_to_db(database, out)
 
 
 def convert_to_db_insert(message, face):
     return {
-        'id': str(uuid.uuid4()),
-        'uuid': message.uuid,
-        'meta_location': message.meta_location,
-        'data_location': message.data_location,
         'degrees': face.get('degrees', 0),
         'hash_digest': message.hash_digest,
-        'encoding': face.get('encoding', list()),
-        'user_id': face.get('user_id', None),
         'box': json.dumps(face.get('box', dict())),
+        'low_vectors': face.get('low_vectors', list()),
+        'high_vectors': face.get('high_vectors', list()),
+        'user_id': face.get('user_id', None),
     }
 
 
-def save_to_db(database, output):
+def save_encodings_to_db(database, output):
     log.debug('Storing encoding in database')
     log.debug(output)
 
-    script = os.path.join(SQL_SCRIPT_DIR, INSERT_ITEM)
+    script = os.path.join(SQL_SCRIPT_DIR, INSERT_ENCODING_ITEM)
+    database.execute_script(script, **output)
+
+
+def save_image_to_db(database, output):
+    log.debug('Storing image reference in database')
+    log.debug(output)
+
+    script = os.path.join(SQL_SCRIPT_DIR, INSERT_IMAGE_ITEM)
     database.execute_script(script, **output)

@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS thumbnails (
   created_at     TIMESTAMPTZ DEFAULT Now()
 );
 
-CREATE INDEX IF NOT EXISTS thumbnails_hash_digest_idx ON faces (hash_digest desc);
-CREATE INDEX IF NOT EXISTS thumbnails_uuid_idx ON faces (uuid desc);
+CREATE INDEX IF NOT EXISTS thumbnails_hash_digest_idx ON thumbnails (hash_digest desc);
+CREATE INDEX IF NOT EXISTS thumbnails_uuid_idx ON thumbnails (uuid desc);

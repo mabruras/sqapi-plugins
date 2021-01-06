@@ -7,6 +7,7 @@ from flask_cors import cross_origin
 from sqapi.api import responding
 
 SELECT_USERS_WITH_SAMPLE = 'select_users_with_sample.sql'
+SELECT_FACES_BY_IMG_HASH = 'select_faces_by_img_hash.sql'
 SELECT_FACES_BY_IMG_UUID = 'select_faces_by_img_uuid.sql'
 SELECT_FACES_BY_USER_ID = 'select_faces_by_user_id.sql'
 
@@ -31,7 +32,7 @@ def find_images_of_user(user_id):
     return responding.ok(faces)
 
 
-@bp.route('/profile/sample', methods=['GET'])
+@bp.route('/samples', methods=['GET'])
 @cross_origin()
 def find_users_with_samples():
     db = get_database()
@@ -92,6 +93,24 @@ def get_faces_with_img_uuid(uuid):
 
     if not entities:
         log.info('No entries found with uuid: {}'.format(uuid))
+        return responding.no_content(entities)
+
+    log.debug('Entity found: {}'.format(entities))
+    return responding.ok(entities)
+
+
+@bp.route('/hash/<hash_digest>', methods=['GET'])
+@cross_origin()
+def get_faces_with_img_sha256(hash_digest):
+    db = get_database()
+    uuid_dict = {'hash_digest': hash_digest}
+
+    log.info(f'Fetching entry with sha256: {hash_digest}')
+    script = get_script_path(SELECT_FACES_BY_IMG_UUID)
+    entities = db.execute_script(script, **uuid_dict)
+
+    if not entities:
+        log.info('No entries found with uuid: {}'.format(hash_digest))
         return responding.no_content(entities)
 
     log.debug('Entity found: {}'.format(entities))

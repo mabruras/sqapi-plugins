@@ -1,13 +1,12 @@
 import io
 import logging
 import threading
-import uuid
 
 import face_recognition
-import numpy
-from PIL import Image
+from PIL import Image, ImageFile
 
 log = logging.getLogger(__name__)
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def find_face_encodings_with_location(file, config=None):
@@ -18,10 +17,10 @@ def find_face_encodings_with_location(file, config=None):
     thread_pool = [
         threading.Thread(target=execute_face_detection, args=[
             open(file.name, 'rb'), x * degrees, out
-        ]) for x in range(number_of_rotations)
+        ], daemon=True) for x in range(number_of_rotations)
     ]
 
-    log.info('{} rotations of {} degrees'.format(number_of_rotations, degrees))
+    log.info(f'{number_of_rotations} rotations of {degrees} degrees')
 
     log.debug('Starting thread pool')
     [t.start() for t in thread_pool]
@@ -36,8 +35,9 @@ def execute_face_detection(file, degrees, out):
     if degrees and degrees < 360:
         log.debug('Rotating image {} degrees (total rotation:'.format(degrees))
         file = rotate_image(file, degrees)
-    log.info('Locating face encodings in image, by {} degrees rotation'.format(degrees))
-    out += find_face_encodings(file, degrees)
+    encodings = find_face_encodings(file, degrees)
+    log.info(f'Locating {len(encodings)} face encodings by {degrees} degrees rotation')
+    out += encodings
 
 
 def rotate_image(file, degrees):
@@ -58,7 +58,8 @@ def find_face_encodings(file, degrees=0):
 
     results = [
         dict({
-            'encoding': encoding.tolist(),
+            'low_vectors': encoding[0:64],
+            'high_vectors': encoding[64:128],
             'degrees': degrees,
             'box': {
                 'y': y1,
@@ -86,33 +87,4 @@ def find_encodings_with_locations(img):
     encodings = face_recognition.face_encodings(img, known_face_locations=locations)
 
     log.debug('Zipping encodings with their respective location')
-    return [(enc, loc) for (enc, loc) in zip(encodings, locations)]
-
-
-def compare_face_with_existing(config, face, existing_faces):
-    log.debug('face: {}'.format(face))
-    log.debug('existing_faces: {}'.format(existing_faces))
-
-    distance_encodings = (dict({
-        'distance': face_recognition.face_distance(numpy.array([f.get('encoding')]), face.get('encoding')),
-        'face': f
-    }) for f in existing_faces)
-
-    default_profile = dict({'user_id': str(uuid.uuid4())})
-    closest_profile = dict(default_profile)
-    closest_distance = 1
-
-    log.debug('Comparing distances between new and existing encodings')
-    for de in distance_encodings:
-        log.debug('Comparing current distance ({}) against closest distance ({})'.format(
-            de.get('distance'), closest_distance)
-        )
-        log.debug(de)
-        if de.get('distance') < closest_distance:
-            closest_distance = de.get('distance')
-            closest_profile = de.get('face')
-
-    log.debug('Comparison complete. Closest profile={}, distance={}'.format(closest_profile, closest_distance))
-    comparison_threshold = config.custom.get('tolerance', 0.45)
-
-    return (closest_profile, closest_distance) if closest_distance < comparison_threshold else (default_profile, 1)
+    return [(enc.tolist(), loc) for (enc, loc) in zip(encodings, locations)]

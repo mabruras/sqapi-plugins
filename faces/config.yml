@@ -10,7 +10,6 @@ plugin:
   mime_types:
   - 'image/jpeg'
   - 'image/png'
-  - 'image/gif'
 
 api:
   blueprints_directory: 'blueprints'
