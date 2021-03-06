@@ -1,0 +1,22 @@
+plugin:
+  mime_types:
+  - 'video/ogg'
+  - 'video/avi'
+  - 'video/x-msvideo'
+  - 'video/mp4'
+  - 'video/mpeg'
+  - 'video/quicktime'
+  - 'video/x-flv'
+
+api:
+  blueprints_directory: 'blueprints'
+
+custom:
+  sequences_in_clip: 10
+  frames_in_sequence: 50
+  frame_spacing: 1
+  enable_segment_gifs: False
+  resolutions:
+  - 240
+  - 320
+  - 640
